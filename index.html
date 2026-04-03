@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Secure Share — automatiks.io</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    /* ========== CONFIG ========== */
+    :root {
+      --black: #000000;
+      --surface: #0a0a0a;
+      --surface-raised: #111111;
+      --surface-hover: #181818;
+      --border: #1e1e1e;
+      --border-focus: #3b82f6;
+      --text: #f0f0f0;
+      --text-muted: #737373;
+      --text-dim: #525252;
+      --accent: #3b82f6;
+      --accent-glow: rgba(59, 130, 246, 0.12);
+      --success: #22c55e;
+      --success-glow: rgba(34, 197, 94, 0.10);
+      --font-body: 'DM Sans', -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', 'SF Mono', monospace;
+      --radius: 10px;
+      --radius-sm: 6px;
+    }
+
+    /* ========== RESET ========== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { height: 100%; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+
+    body {
+      min-height: 100vh;
+      font-family: var(--font-body);
+      background: var(--black);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      line-height: 1.5;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* subtle noise overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      opacity: 0.025;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size: 256px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* top accent line */
+    body::after {
+      content: '';
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent 0%, var(--accent) 50%, transparent 100%);
+      opacity: 0.5;
+      z-index: 100;
+    }
+
+    /* ========== LAYOUT ========== */
+    .page {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 480px;
+      padding: 0 20px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ========== HEADER ========== */
+    .header {
+      padding: 48px 0 0;
+      text-align: center;
+    }
+
+    .logo {
+      font-family: var(--font-body);
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .logo span {
+      color: var(--text-muted);
+      font-weight: 400;
+    }
+
+    /* ========== CARD ========== */
+    .card {
+      margin-top: 48px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      animation: cardIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .card-header {
+      padding: 32px 32px 0;
+    }
+
+    .card-title {
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: -0.03em;
+      line-height: 1.2;
+      color: var(--text);
+    }
+
+    .card-desc {
+      margin-top: 8px;
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.55;
+    }
+
+    .card-body {
+      padding: 28px 32px 32px;
+    }
+
+    /* ========== FORM ========== */
+    .field {
+      margin-bottom: 20px;
+    }
+
+    .field:last-child {
+      margin-bottom: 0;
+    }
+
+    .label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-bottom: 7px;
+      letter-spacing: 0.01em;
+    }
+
+    .input, .textarea {
+      width: 100%;
+      padding: 12px 14px;
+      font-family: var(--font-mono);
+      font-size: 14px;
+      font-weight: 400;
+      color: var(--text);
+      background: var(--surface-raised);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      -webkit-appearance: none;
+    }
+
+    .input::placeholder, .textarea::placeholder {
+      color: var(--text-dim);
+    }
+
+    .input:focus, .textarea:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    .textarea {
+      min-height: 120px;
+      resize: vertical;
+      line-height: 1.6;
+    }
+
+    .input[type="password"] {
+      letter-spacing: 0.08em;
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      margin-top: 28px;
+      padding: 13px 24px;
+      font-family: var(--font-body);
+      font-size: 15px;
+      font-weight: 500;
+      color: #fff;
+      background: var(--accent);
+      border: none;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+      letter-spacing: -0.01em;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn:hover {
+      opacity: 0.92;
+    }
+
+    .btn:active {
+      transform: scale(0.985);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-loading .btn-text { visibility: hidden; }
+    .btn-loading .spinner { display: block; }
+
+    .spinner {
+      display: none;
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 20px; height: 20px;
+      border: 2px solid rgba(255,255,255,0.25);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+
+    @keyframes spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
+
+    /* ========== SUCCESS STATE ========== */
+    .success-view {
+      display: none;
+      text-align: center;
+      padding: 48px 32px;
+    }
+
+    .success-view.active {
+      display: block;
+      animation: successIn 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    @keyframes successIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .success-icon {
+      width: 56px; height: 56px;
+      margin: 0 auto 20px;
+      border-radius: 50%;
+      background: var(--success-glow);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .success-icon svg {
+      width: 28px; height: 28px;
+      color: var(--success);
+    }
+
+    .success-title {
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
+    }
+
+    .success-text {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.55;
+    }
+
+    /* ========== SECURITY BADGE ========== */
+    .security {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      margin-top: 20px;
+      padding: 10px 0;
+      font-size: 12px;
+      color: var(--text-dim);
+      letter-spacing: 0.02em;
+    }
+
+    .security svg {
+      width: 13px; height: 13px;
+      color: var(--text-dim);
+      flex-shrink: 0;
+    }
+
+    /* ========== FOOTER ========== */
+    .footer {
+      padding: 48px 0 32px;
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-dim);
+      line-height: 1.7;
+    }
+
+    .footer a {
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+
+    .footer a:hover {
+      color: var(--text);
+    }
+
+    .footer-sep {
+      margin: 0 6px;
+      opacity: 0.4;
+    }
+
+    /* ========== ERROR PAGE ========== */
+    .error-view {
+      display: none;
+      text-align: center;
+      padding: 48px 32px;
+    }
+
+    .error-view.active {
+      display: block;
+    }
+
+    .error-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #ef4444;
+      margin-bottom: 8px;
+    }
+
+    .error-text {
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    /* ========== RESPONSIVE ========== */
+    @media (max-width: 520px) {
+      .card-header { padding: 24px 20px 0; }
+      .card-body { padding: 22px 20px 24px; }
+      .success-view { padding: 36px 20px; }
+      .header { padding-top: 32px; }
+      .card { margin-top: 32px; }
+      .card-title { font-size: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="page">
+    <header class="header">
+      <a href="https://automatiks.io" class="logo" target="_blank" rel="noopener">
+        automatiks<span>.io</span>
+      </a>
+    </header>
+
+    <main class="card" id="card">
+      <!-- FORM VIEW -->
+      <div id="form-view">
+        <div class="card-header">
+          <h1 class="card-title" id="form-title"></h1>
+          <p class="card-desc" id="form-desc"></p>
+        </div>
+        <div class="card-body">
+          <form id="credential-form" method="POST">
+            <div id="fields-container"></div>
+            <button type="submit" class="btn" id="submit-btn">
+              <span class="btn-text">Sicher übermitteln</span>
+              <span class="spinner"></span>
+            </button>
+          </form>
+          <div class="security">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            Ende-zu-Ende verschlüsselt — Daten werden nach Abruf automatisch gelöscht
+          </div>
+        </div>
+      </div>
+
+      <!-- SUCCESS VIEW -->
+      <div class="success-view" id="success-view">
+        <div class="success-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+        <h2 class="success-title">Erfolgreich übertragen</h2>
+        <p class="success-text">Ihre Zugangsdaten wurden sicher übermittelt.<br>Sie können diese Seite jetzt schließen.</p>
+      </div>
+
+      <!-- ERROR VIEW -->
+      <div class="error-view" id="error-view">
+        <h2 class="error-title">Übertragung fehlgeschlagen</h2>
+        <p class="error-text" id="error-text">Bitte versuchen Sie es erneut oder kontaktieren Sie uns direkt.</p>
+      </div>
+    </main>
+
+    <footer class="footer">
+      automatiks.io UG (haftungsbeschränkt)<br>
+      Droiacker 2, 95505 Immenreuth
+      <br>
+      <a href="mailto:info@automatiks.io">info@automatiks.io</a>
+      <span class="footer-sep">|</span>
+      <a href="https://automatiks.io" target="_blank" rel="noopener">automatiks.io</a>
+    </footer>
+  </div>
+
+  <script>
+    /* ============================================================
+       CONFIGURATION
+       ============================================================ */
+
+    // n8n webhook URL — receives the credential submissions
+    const WEBHOOK_URL = 'https://n8n.automatiksio.cloud/webhook/secure-share';
+
+    // Route configs: hash -> form definition
+    const ROUTES = {
+      clockodo: {
+        title: 'Clockodo API-Zugang',
+        description: 'Bitte übermitteln Sie die folgenden Zugangsdaten. Diese werden verschlüsselt übertragen und nach einmaligem Abruf automatisch gelöscht.',
+        fields: [
+          { name: 'clockodo_email', label: 'Clockodo E-Mail (API User)', type: 'email', placeholder: 'name@firma.de', required: true },
+          { name: 'clockodo_api_key', label: 'Clockodo API Key', type: 'text', placeholder: 'Ihren API Key hier einfügen', required: true, mono: true }
+        ]
+      },
+      ghl: {
+        title: 'GoHighLevel Zugang',
+        description: 'Bitte übermitteln Sie die folgenden Zugangsdaten. Diese werden verschlüsselt übertragen und nach einmaligem Abruf automatisch gelöscht.',
+        fields: [
+          { name: 'ghl_email', label: 'GHL E-Mail', type: 'email', placeholder: 'name@firma.de', required: true },
+          { name: 'ghl_password', label: 'GHL Passwort', type: 'password', placeholder: 'Passwort', required: true },
+          { name: 'ghl_location_id', label: 'GHL Location ID', type: 'text', placeholder: 'z.B. abc123XYZ', required: false, mono: true }
+        ]
+      },
+      _default: {
+        title: 'Zugangsdaten übermitteln',
+        description: 'Bitte übermitteln Sie die angeforderten Zugangsdaten. Diese werden verschlüsselt übertragen und nach einmaligem Abruf automatisch gelöscht.',
+        fields: [
+          { name: 'credentials', label: 'Zugangsdaten', type: 'textarea', placeholder: 'Zugangsdaten hier einfügen\u2026', required: true }
+        ]
+      }
+    };
+
+    /* ============================================================
+       LOGIC
+       ============================================================ */
+
+    const formView = document.getElementById('form-view');
+    const successView = document.getElementById('success-view');
+    const errorView = document.getElementById('error-view');
+    const form = document.getElementById('credential-form');
+    const btn = document.getElementById('submit-btn');
+
+    function getRoute() {
+      const hash = window.location.hash.replace('#', '').toLowerCase().trim();
+      return ROUTES[hash] || ROUTES._default;
+    }
+
+    function renderForm() {
+      const route = getRoute();
+      const routeKey = window.location.hash.replace('#', '').toLowerCase().trim() || '_default';
+
+      document.getElementById('form-title').textContent = route.title;
+      document.getElementById('form-desc').textContent = route.description;
+      document.title = route.title + ' — automatiks.io';
+
+      const container = document.getElementById('fields-container');
+      container.innerHTML = '';
+
+      route.fields.forEach(function(field, i) {
+        const div = document.createElement('div');
+        div.className = 'field';
+
+        const label = document.createElement('label');
+        label.className = 'label';
+        label.setAttribute('for', 'f-' + field.name);
+        label.textContent = field.label;
+        div.appendChild(label);
+
+        if (field.type === 'textarea') {
+          const textarea = document.createElement('textarea');
+          textarea.className = 'textarea';
+          textarea.id = 'f-' + field.name;
+          textarea.name = field.name;
+          textarea.placeholder = field.placeholder || '';
+          textarea.required = field.required !== false;
+          textarea.setAttribute('autocomplete', 'off');
+          textarea.setAttribute('spellcheck', 'false');
+          div.appendChild(textarea);
+        } else {
+          const input = document.createElement('input');
+          input.className = 'input';
+          input.id = 'f-' + field.name;
+          input.name = field.name;
+          input.type = field.type || 'text';
+          input.placeholder = field.placeholder || '';
+          input.required = field.required !== false;
+          input.setAttribute('autocomplete', 'off');
+          input.setAttribute('spellcheck', 'false');
+          if (field.mono) input.style.fontFamily = 'var(--font-mono)';
+          div.appendChild(input);
+        }
+
+        container.appendChild(div);
+      });
+
+      // Auto-focus first field
+      const firstInput = container.querySelector('input, textarea');
+      if (firstInput) setTimeout(function() { firstInput.focus(); }, 300);
+    }
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      btn.disabled = true;
+      btn.classList.add('btn-loading');
+
+      const routeKey = window.location.hash.replace('#', '').toLowerCase().trim() || 'generic';
+      const formData = new FormData(form);
+      const payload = { _route: routeKey, _timestamp: new Date().toISOString() };
+
+      formData.forEach(function(value, key) {
+        payload[key] = value;
+      });
+
+      fetch(WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      .then(function(res) {
+        if (!res.ok) throw new Error('Status ' + res.status);
+        formView.style.display = 'none';
+        successView.classList.add('active');
+      })
+      .catch(function(err) {
+        formView.style.display = 'none';
+        errorView.classList.add('active');
+        document.getElementById('error-text').textContent =
+          'Übertragung fehlgeschlagen. Bitte kontaktieren Sie uns direkt unter info@automatiks.io.';
+      })
+      .finally(function() {
+        btn.disabled = false;
+        btn.classList.remove('btn-loading');
+      });
+    });
+
+    // Init
+    renderForm();
+    window.addEventListener('hashchange', function() {
+      formView.style.display = '';
+      successView.classList.remove('active');
+      errorView.classList.remove('active');
+      renderForm();
+    });
+  </script>
+</body>
+</html>
