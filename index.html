@@ -88,19 +88,10 @@
       text-align: center;
     }
 
-    .logo {
-      font-family: var(--font-body);
-      font-size: 18px;
-      font-weight: 600;
-      letter-spacing: -0.02em;
-      color: var(--text);
-      text-decoration: none;
-      display: inline-block;
-    }
-
-    .logo span {
-      color: var(--text-muted);
-      font-weight: 400;
+    .logo-img {
+      height: 26px;
+      width: auto;
+      display: block;
     }
 
     /* ========== CARD ========== */
@@ -369,8 +360,8 @@
 
   <div class="page">
     <header class="header">
-      <a href="https://automatiks.io" class="logo" target="_blank" rel="noopener">
-        automatiks<span>.io</span>
+      <a href="https://automatiks.io" target="_blank" rel="noopener">
+        <img src="https://automatiks.io/logo/automatiks-1c-white.svg" alt="automatiks.io" class="logo-img">
       </a>
     </header>
 
@@ -427,8 +418,12 @@
        CONFIGURATION
        ============================================================ */
 
-    // n8n webhook URL — receives the credential submissions
+    // PwPush API — stores credentials encrypted (self-hosted, EU, no Cloudflare)
+    const PWPUSH_API = 'https://pwpush.automatiks.io/p.json';
+
+    // n8n webhook — receives ONLY the PwPush link + metadata (never credentials)
     const WEBHOOK_URL = 'https://n8n.automatiksio.cloud/webhook/secure-share';
+    const WEBHOOK_SECRET = 'aio-share-k8x2m9v4';
 
     // Route configs: hash -> form definition
     const ROUTES = {
@@ -532,35 +527,82 @@
       btn.disabled = true;
       btn.classList.add('btn-loading');
 
-      const routeKey = window.location.hash.replace('#', '').toLowerCase().trim() || 'generic';
-      const formData = new FormData(form);
-      const payload = { _route: routeKey, _timestamp: new Date().toISOString() };
+      var routeKey = window.location.hash.replace('#', '').toLowerCase().trim() || 'generic';
+      var formData = new FormData(form);
 
-      formData.forEach(function(value, key) {
-        payload[key] = value;
+      // Validate: no field > 500 chars
+      var tooLong = false;
+      formData.forEach(function(value) {
+        if (value.length > 500) tooLong = true;
       });
+      if (tooLong) {
+        showError('Eingabe zu lang. Maximal 500 Zeichen pro Feld.');
+        return;
+      }
 
-      fetch(WEBHOOK_URL, {
+      // Build credential text for PwPush
+      var credLines = [];
+      formData.forEach(function(value, key) {
+        credLines.push(key + ': ' + value);
+      });
+      var credText = 'Route: ' + routeKey + '\n' + credLines.join('\n');
+
+      // Step 1: Store in PwPush (encrypted, auto-delete, bypasses Cloudflare)
+      fetch(PWPUSH_API, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({
+          password: {
+            payload: credText,
+            expire_after_days: 2,
+            expire_after_views: 3,
+            retrieval_step: false
+          }
+        })
       })
       .then(function(res) {
-        if (!res.ok) throw new Error('Status ' + res.status);
+        if (!res.ok) throw new Error('PwPush: ' + res.status);
+        return res.json();
+      })
+      .then(function(pwData) {
+        var pwpushUrl = 'https://pwpush.automatiks.io/p/' + pwData.url_token;
+
+        // Step 2: Notify via webhook (only link + metadata, never credentials)
+        return fetch(WEBHOOK_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Auth-Token': WEBHOOK_SECRET
+          },
+          body: JSON.stringify({
+            _route: routeKey,
+            _timestamp: new Date().toISOString(),
+            _pwpush_url: pwpushUrl,
+            _fields: credLines.map(function(l) { return l.split(': ')[0]; })
+          })
+        });
+      })
+      .then(function(res) {
+        if (!res.ok) throw new Error('Webhook: ' + res.status);
         formView.style.display = 'none';
         successView.classList.add('active');
       })
       .catch(function(err) {
-        formView.style.display = 'none';
-        errorView.classList.add('active');
-        document.getElementById('error-text').textContent =
-          'Übertragung fehlgeschlagen. Bitte kontaktieren Sie uns direkt unter info@automatiks.io.';
+        showError('Uebertragung fehlgeschlagen. Bitte kontaktieren Sie uns direkt unter info@automatiks.io.');
       })
       .finally(function() {
         btn.disabled = false;
         btn.classList.remove('btn-loading');
       });
     });
+
+    function showError(msg) {
+      formView.style.display = 'none';
+      errorView.classList.add('active');
+      document.getElementById('error-text').textContent = msg;
+      btn.disabled = false;
+      btn.classList.remove('btn-loading');
+    }
 
     // Init
     renderForm();
