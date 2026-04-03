@@ -3,7 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="robots" content="noindex, nofollow">
+  <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+  <meta name="googlebot" content="noindex, nofollow">
   <title>Secure Share — automatiks.io</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -92,6 +93,7 @@
       height: 26px;
       width: auto;
       display: block;
+      margin: 0 auto;
     }
 
     /* ========== CARD ========== */
@@ -401,6 +403,12 @@
         <h2 class="error-title">Übertragung fehlgeschlagen</h2>
         <p class="error-text" id="error-text">Bitte versuchen Sie es erneut oder kontaktieren Sie uns direkt.</p>
       </div>
+
+      <!-- INVALID LINK VIEW -->
+      <div class="error-view" id="invalid-view">
+        <h2 class="error-title" style="color: var(--text-muted);">Ungültiger Link</h2>
+        <p class="error-text">Dieser Link ist ungültig oder abgelaufen.<br>Bitte kontaktieren Sie uns für einen neuen Zugangslink.</p>
+      </div>
     </main>
 
     <footer class="footer">
@@ -424,6 +432,15 @@
     // n8n webhook — receives ONLY the PwPush link + metadata (never credentials)
     const WEBHOOK_URL = 'https://n8n.automatiksio.cloud/webhook/secure-share';
     const WEBHOOK_SECRET = 'aio-share-k8x2m9v4';
+
+    // Valid access keys — each link gets a unique key.
+    // Format: share.automatiks.io/?key=KEY#route
+    // Generate new keys per client/request. Remove after use.
+    const VALID_KEYS = {
+      'vp-clock-x8k2':  { expires: '2026-05-01', note: 'Varia Plus Clockodo' },
+      'vp-ghl-m4p9':    { expires: '2026-05-01', note: 'Varia Plus GHL' },
+      'demo-2026':      { expires: '2026-12-31', note: 'Demo/Test key' }
+    };
 
     // Route configs: hash -> form definition
     const ROUTES = {
@@ -460,17 +477,39 @@
     const formView = document.getElementById('form-view');
     const successView = document.getElementById('success-view');
     const errorView = document.getElementById('error-view');
+    const invalidView = document.getElementById('invalid-view');
     const form = document.getElementById('credential-form');
     const btn = document.getElementById('submit-btn');
 
+    var currentKey = '';
+
+    function getUrlKey() {
+      var params = new URLSearchParams(window.location.search);
+      return params.get('key') || '';
+    }
+
+    function validateKey(key) {
+      var entry = VALID_KEYS[key];
+      if (!entry) return false;
+      if (entry.expires && new Date(entry.expires) < new Date()) return false;
+      return true;
+    }
+
     function getRoute() {
-      const hash = window.location.hash.replace('#', '').toLowerCase().trim();
+      var hash = window.location.hash.replace('#', '').toLowerCase().trim();
       return ROUTES[hash] || ROUTES._default;
     }
 
     function renderForm() {
-      const route = getRoute();
-      const routeKey = window.location.hash.replace('#', '').toLowerCase().trim() || '_default';
+      currentKey = getUrlKey();
+      if (!validateKey(currentKey)) {
+        formView.style.display = 'none';
+        invalidView.classList.add('active');
+        return;
+      }
+
+      var route = getRoute();
+      var routeKey = window.location.hash.replace('#', '').toLowerCase().trim() || '_default';
 
       document.getElementById('form-title').textContent = route.title;
       document.getElementById('form-desc').textContent = route.description;
@@ -576,6 +615,8 @@
           },
           body: JSON.stringify({
             _route: routeKey,
+            _key: currentKey,
+            _key_note: (VALID_KEYS[currentKey] || {}).note || '',
             _timestamp: new Date().toISOString(),
             _pwpush_url: pwpushUrl,
             _fields: credLines.map(function(l) { return l.split(': ')[0]; })
