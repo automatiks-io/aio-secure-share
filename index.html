@@ -409,6 +409,12 @@
         <h2 class="error-title" style="color: var(--text-muted);">Ungültiger Link</h2>
         <p class="error-text">Dieser Link ist ungültig oder abgelaufen.<br>Bitte kontaktieren Sie uns für einen neuen Zugangslink.</p>
       </div>
+
+      <!-- SERVICE UNAVAILABLE VIEW -->
+      <div class="error-view" id="unavailable-view">
+        <h2 class="error-title" style="color: var(--accent);">Vorübergehend nicht erreichbar</h2>
+        <p class="error-text">Der Service ist momentan nicht verfügbar.<br>Bitte versuchen Sie es in wenigen Minuten erneut.</p>
+      </div>
     </main>
 
     <footer class="footer">
@@ -426,57 +432,15 @@
        CONFIGURATION
        ============================================================ */
 
+    // Config API — validates keys and returns route config (n8n workflow)
+    const CONFIG_API = 'https://n8n.automatiksio.cloud/webhook/secure-share-api';
+
     // PwPush API — stores credentials encrypted (self-hosted, EU, no Cloudflare)
     const PWPUSH_API = 'https://pwpush.automatiks.io/p.json';
 
     // n8n webhook — receives ONLY the PwPush link + metadata (never credentials)
     const WEBHOOK_URL = 'https://n8n.automatiksio.cloud/webhook/secure-share';
     const WEBHOOK_SECRET = 'aio-share-k8x2m9v4';
-
-    // Valid access keys — each link gets a unique key.
-    // Format: share.automatiks.io/?key=KEY#route
-    // Generate new keys per client/request. Remove after use.
-    const VALID_KEYS = {
-      'vp-clock-x8k2':  { expires: '2026-05-01', note: 'Varia Plus Clockodo' },
-      'vp-ghl-m4p9':    { expires: '2026-05-01', note: 'Varia Plus GHL' },
-      'demo-2026':      { expires: '2026-12-31', note: 'Demo/Test key' },
-      'anwa-lex-q7w3':  { expires: '2026-05-15', note: 'ANWA Kompetenzzentrum Andreas Wagner — Lexoffice API Key' }
-    };
-
-    // Route configs: hash -> form definition
-    const ROUTES = {
-      clockodo: {
-        title: 'Clockodo API-Zugang',
-        description: 'Bitte übermitteln Sie die folgenden Zugangsdaten. Diese werden verschlüsselt übertragen und nach einmaligem Abruf automatisch gelöscht.',
-        fields: [
-          { name: 'clockodo_email', label: 'Clockodo E-Mail (API User)', type: 'email', placeholder: 'name@firma.de', required: true },
-          { name: 'clockodo_api_key', label: 'Clockodo API Key', type: 'text', placeholder: 'Ihren API Key hier einfügen', required: true, mono: true }
-        ]
-      },
-      ghl: {
-        title: 'GoHighLevel Zugang',
-        description: 'Bitte übermitteln Sie die folgenden Zugangsdaten. Diese werden verschlüsselt übertragen und nach einmaligem Abruf automatisch gelöscht.',
-        fields: [
-          { name: 'ghl_email', label: 'GHL E-Mail', type: 'email', placeholder: 'name@firma.de', required: true },
-          { name: 'ghl_password', label: 'GHL Passwort', type: 'password', placeholder: 'Passwort', required: true },
-          { name: 'ghl_location_id', label: 'GHL Location ID', type: 'text', placeholder: 'z.B. abc123XYZ', required: false, mono: true }
-        ]
-      },
-      lexoffice: {
-        title: 'Lexoffice API Key',
-        description: 'Bitte übermitteln Sie Ihren Lexoffice API Key. Dieser wird verschlüsselt übertragen und nach einmaligem Abruf automatisch gelöscht.',
-        fields: [
-          { name: 'lexoffice_api_key', label: 'Lexoffice API Key', type: 'text', placeholder: 'API Key hier einfügen', required: true, mono: true }
-        ]
-      },
-      _default: {
-        title: 'Zugangsdaten übermitteln',
-        description: 'Bitte übermitteln Sie die angeforderten Zugangsdaten. Diese werden verschlüsselt übertragen und nach einmaligem Abruf automatisch gelöscht.',
-        fields: [
-          { name: 'credentials', label: 'Zugangsdaten', type: 'textarea', placeholder: 'Zugangsdaten hier einfügen\u2026', required: true }
-        ]
-      }
-    };
 
     /* ============================================================
        LOGIC
@@ -486,58 +450,85 @@
     const successView = document.getElementById('success-view');
     const errorView = document.getElementById('error-view');
     const invalidView = document.getElementById('invalid-view');
+    const unavailableView = document.getElementById('unavailable-view');
     const form = document.getElementById('credential-form');
     const btn = document.getElementById('submit-btn');
 
     var currentKey = '';
+    var currentKeyNote = '';
 
     function getUrlKey() {
       var params = new URLSearchParams(window.location.search);
       return params.get('key') || '';
     }
 
-    function validateKey(key) {
-      var entry = VALID_KEYS[key];
-      if (!entry) return false;
-      if (entry.expires && new Date(entry.expires) < new Date()) return false;
-      return true;
+    async function loadConfig(key) {
+      var controller = new AbortController();
+      var timeout = setTimeout(function() { controller.abort(); }, 5000);
+      try {
+        var routeHint = window.location.hash.replace('#', '').toLowerCase().trim() || undefined;
+        var res = await fetch(CONFIG_API, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'validate', key: key, route: routeHint }),
+          signal: controller.signal
+        });
+        clearTimeout(timeout);
+        if (!res.ok) return { valid: false, error: 'service_error' };
+        return await res.json();
+      } catch (e) {
+        clearTimeout(timeout);
+        return { valid: false, error: 'service_unavailable' };
+      }
     }
 
-    function getRoute() {
-      var hash = window.location.hash.replace('#', '').toLowerCase().trim();
-      return ROUTES[hash] || ROUTES._default;
-    }
-
-    function renderForm() {
+    async function renderForm() {
       currentKey = getUrlKey();
-      if (!validateKey(currentKey)) {
+      if (!currentKey) {
         formView.style.display = 'none';
         invalidView.classList.add('active');
         return;
       }
 
-      var route = getRoute();
-      var routeKey = window.location.hash.replace('#', '').toLowerCase().trim() || '_default';
+      // Show loading state
+      document.getElementById('form-title').textContent = 'Wird geladen\u2026';
+      document.getElementById('form-desc').textContent = '';
+      document.getElementById('fields-container').innerHTML = '';
+
+      var config = await loadConfig(currentKey);
+
+      if (!config.valid) {
+        formView.style.display = 'none';
+        if (config.error === 'service_unavailable' || config.error === 'service_error') {
+          unavailableView.classList.add('active');
+        } else {
+          invalidView.classList.add('active');
+        }
+        return;
+      }
+
+      currentKeyNote = config.key_note || '';
+      var route = config.route;
 
       document.getElementById('form-title').textContent = route.title;
       document.getElementById('form-desc').textContent = route.description;
-      document.title = route.title + ' — automatiks.io';
+      document.title = route.title + ' \u2014 automatiks.io';
 
-      const container = document.getElementById('fields-container');
+      var container = document.getElementById('fields-container');
       container.innerHTML = '';
 
-      route.fields.forEach(function(field, i) {
-        const div = document.createElement('div');
+      route.fields.forEach(function(field) {
+        var div = document.createElement('div');
         div.className = 'field';
 
-        const label = document.createElement('label');
+        var label = document.createElement('label');
         label.className = 'label';
         label.setAttribute('for', 'f-' + field.name);
         label.textContent = field.label;
         div.appendChild(label);
 
         if (field.type === 'textarea') {
-          const textarea = document.createElement('textarea');
+          var textarea = document.createElement('textarea');
           textarea.className = 'textarea';
           textarea.id = 'f-' + field.name;
           textarea.name = field.name;
@@ -547,7 +538,7 @@
           textarea.setAttribute('spellcheck', 'false');
           div.appendChild(textarea);
         } else {
-          const input = document.createElement('input');
+          var input = document.createElement('input');
           input.className = 'input';
           input.id = 'f-' + field.name;
           input.name = field.name;
@@ -563,8 +554,7 @@
         container.appendChild(div);
       });
 
-      // Auto-focus first field
-      const firstInput = container.querySelector('input, textarea');
+      var firstInput = container.querySelector('input, textarea');
       if (firstInput) setTimeout(function() { firstInput.focus(); }, 300);
     }
 
@@ -577,7 +567,6 @@
       var routeKey = window.location.hash.replace('#', '').toLowerCase().trim() || 'generic';
       var formData = new FormData(form);
 
-      // Validate: no field > 500 chars
       var tooLong = false;
       formData.forEach(function(value) {
         if (value.length > 500) tooLong = true;
@@ -587,14 +576,12 @@
         return;
       }
 
-      // Build credential text for PwPush
       var credLines = [];
       formData.forEach(function(value, key) {
         credLines.push(key + ': ' + value);
       });
       var credText = 'Route: ' + routeKey + '\n' + credLines.join('\n');
 
-      // Step 1: Store in PwPush (encrypted, auto-delete, bypasses Cloudflare)
       fetch(PWPUSH_API, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -614,7 +601,6 @@
       .then(function(pwData) {
         var pwpushUrl = 'https://pwpush.automatiks.io/p/' + pwData.url_token;
 
-        // Step 2: Notify via webhook (only link + metadata, never credentials)
         return fetch(WEBHOOK_URL, {
           method: 'POST',
           headers: {
@@ -624,7 +610,7 @@
           body: JSON.stringify({
             _route: routeKey,
             _key: currentKey,
-            _key_note: (VALID_KEYS[currentKey] || {}).note || '',
+            _key_note: currentKeyNote,
             _timestamp: new Date().toISOString(),
             _pwpush_url: pwpushUrl,
             _fields: credLines.map(function(l) { return l.split(': ')[0]; })
@@ -659,6 +645,8 @@
       formView.style.display = '';
       successView.classList.remove('active');
       errorView.classList.remove('active');
+      invalidView.classList.remove('active');
+      if (unavailableView) unavailableView.classList.remove('active');
       renderForm();
     });
   </script>
