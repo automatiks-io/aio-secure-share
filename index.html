@@ -439,7 +439,8 @@
     const VALID_KEYS = {
       'vp-clock-x8k2':  { expires: '2026-05-01', note: 'Varia Plus Clockodo' },
       'vp-ghl-m4p9':    { expires: '2026-05-01', note: 'Varia Plus GHL' },
-      'demo-2026':      { expires: '2026-12-31', note: 'Demo/Test key' }
+      'demo-2026':      { expires: '2026-12-31', note: 'Demo/Test key' },
+      'anwa-lex-q7w3':  { expires: '2026-05-15', note: 'ANWA Kompetenzzentrum Andreas Wagner — Lexoffice API Key' }
     };
 
     // Route configs: hash -> form definition
@@ -459,6 +460,13 @@
           { name: 'ghl_email', label: 'GHL E-Mail', type: 'email', placeholder: 'name@firma.de', required: true },
           { name: 'ghl_password', label: 'GHL Passwort', type: 'password', placeholder: 'Passwort', required: true },
           { name: 'ghl_location_id', label: 'GHL Location ID', type: 'text', placeholder: 'z.B. abc123XYZ', required: false, mono: true }
+        ]
+      },
+      lexoffice: {
+        title: 'Lexoffice API Key',
+        description: 'Bitte übermitteln Sie Ihren Lexoffice API Key. Dieser wird verschlüsselt übertragen und nach einmaligem Abruf automatisch gelöscht.',
+        fields: [
+          { name: 'lexoffice_api_key', label: 'Lexoffice API Key', type: 'text', placeholder: 'API Key hier einfügen', required: true, mono: true }
         ]
       },
       _default: {
