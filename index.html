@@ -186,6 +186,36 @@
       letter-spacing: 0.08em;
     }
 
+    /* per-field help block — rendered above input with clickable links */
+    .field-help {
+      margin-bottom: 10px;
+      padding: 12px 14px;
+      background: var(--surface-raised);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--text-muted);
+      white-space: pre-wrap;
+    }
+
+    .field-help a {
+      color: var(--accent);
+      text-decoration: none;
+      border-bottom: 1px solid rgba(59, 130, 246, 0.3);
+      transition: border-color 0.15s;
+      word-break: break-all;
+    }
+
+    .field-help a:hover {
+      border-bottom-color: var(--accent);
+    }
+
+    .field-help strong {
+      color: var(--text);
+      font-weight: 500;
+    }
+
     .btn {
       display: block;
       width: 100%;
@@ -482,6 +512,20 @@
       }
     }
 
+    function renderHelp(text) {
+      var safe = String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+      safe = safe.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+      safe = safe.replace(/(https?:\/\/[^\s<>"]+[^\s<>".,;:!?)\]])/g, function(url) {
+        return '<a href="' + url + '" target="_blank" rel="noopener noreferrer">' + url + '</a>';
+      });
+      return safe;
+    }
+
     async function renderForm() {
       currentKey = getUrlKey();
       if (!currentKey) {
@@ -526,6 +570,13 @@
         label.setAttribute('for', 'f-' + field.name);
         label.textContent = field.label;
         div.appendChild(label);
+
+        if (field.help) {
+          var help = document.createElement('div');
+          help.className = 'field-help';
+          help.innerHTML = renderHelp(field.help);
+          div.appendChild(help);
+        }
 
         if (field.type === 'textarea') {
           var textarea = document.createElement('textarea');
