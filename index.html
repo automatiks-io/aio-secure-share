@@ -25,6 +25,10 @@
       --accent-glow: rgba(59, 130, 246, 0.12);
       --success: #22c55e;
       --success-glow: rgba(34, 197, 94, 0.10);
+      --gold: #e8c267;
+      --gold-glow: rgba(232, 194, 103, 0.10);
+      --trust-bg: rgba(255, 255, 255, 0.02);
+      --trust-border: rgba(255, 255, 255, 0.06);
       --font-body: 'DM Sans', -apple-system, sans-serif;
       --font-mono: 'JetBrains Mono', 'SF Mono', monospace;
       --radius: 10px;
@@ -85,25 +89,57 @@
 
     /* ========== HEADER ========== */
     .header {
-      padding: 48px 0 0;
+      padding: 56px 0 0;
       text-align: center;
     }
 
     .logo-img {
-      height: 26px;
+      height: 30px;
       width: auto;
       display: block;
       margin: 0 auto;
+      transition: opacity 0.2s;
+    }
+
+    .header a:hover .logo-img {
+      opacity: 0.85;
+    }
+
+    /* ========== HERO ========== */
+    .hero {
+      margin-top: 28px;
+      text-align: center;
+    }
+
+    .hero-eyebrow {
+      display: inline-block;
+      padding: 5px 10px;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--gold);
+      background: var(--gold-glow);
+      border: 1px solid rgba(232, 194, 103, 0.18);
+      border-radius: 999px;
+    }
+
+    .hero-sub {
+      margin-top: 10px;
+      font-size: 13px;
+      color: var(--text-dim);
+      letter-spacing: 0.01em;
     }
 
     /* ========== CARD ========== */
     .card {
-      margin-top: 48px;
+      margin-top: 24px;
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: var(--radius);
       overflow: hidden;
       animation: cardIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+      box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset, 0 8px 32px rgba(0,0,0,0.4);
     }
 
     @keyframes cardIn {
@@ -291,6 +327,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.18), 0 0 40px rgba(34, 197, 94, 0.08);
     }
 
     .success-icon svg {
@@ -317,26 +354,82 @@
       align-items: center;
       justify-content: center;
       gap: 7px;
-      margin-top: 20px;
-      padding: 10px 0;
+      margin-top: 22px;
+      padding: 12px 14px;
       font-size: 12px;
-      color: var(--text-dim);
+      color: var(--text-muted);
       letter-spacing: 0.02em;
+      background: var(--trust-bg);
+      border: 1px solid var(--trust-border);
+      border-radius: var(--radius-sm);
+      line-height: 1.4;
     }
 
     .security svg {
       width: 13px; height: 13px;
+      color: var(--accent);
+      flex-shrink: 0;
+    }
+
+    /* ========== TRUST PILLS ========== */
+    .trust-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 6px;
+      margin-top: 14px;
+    }
+
+    .trust-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 9px;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      color: var(--text-muted);
+      background: var(--trust-bg);
+      border: 1px solid var(--trust-border);
+      border-radius: 999px;
+      white-space: nowrap;
+    }
+
+    .trust-pill svg {
+      width: 11px; height: 11px;
       color: var(--text-dim);
       flex-shrink: 0;
     }
 
+    .trust-pill.is-eu svg { color: var(--gold); }
+
     /* ========== FOOTER ========== */
     .footer {
-      padding: 48px 0 32px;
+      padding: 40px 0 32px;
       text-align: center;
       font-size: 12px;
       color: var(--text-dim);
       line-height: 1.7;
+    }
+
+    .footer-divider {
+      width: 24px;
+      height: 1px;
+      background: var(--border);
+      margin: 0 auto 20px;
+    }
+
+    .footer-brand {
+      font-size: 11px;
+      color: var(--text-dim);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+
+    .footer-brand strong {
+      color: var(--text-muted);
+      font-weight: 500;
     }
 
     .footer a {
@@ -365,16 +458,53 @@
       display: block;
     }
 
+    .error-icon {
+      width: 48px; height: 48px;
+      margin: 0 auto 18px;
+      border-radius: 50%;
+      background: rgba(115, 115, 115, 0.06);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 0 1px rgba(115, 115, 115, 0.12);
+    }
+
+    .error-icon svg {
+      width: 22px; height: 22px;
+      color: var(--text-muted);
+    }
+
     .error-title {
       font-size: 18px;
       font-weight: 600;
-      color: #ef4444;
-      margin-bottom: 8px;
+      color: var(--text);
+      letter-spacing: -0.01em;
+      margin-bottom: 10px;
     }
 
     .error-text {
       font-size: 14px;
       color: var(--text-muted);
+      line-height: 1.55;
+    }
+
+    .error-link {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 8px 14px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-muted);
+      background: var(--surface-raised);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      text-decoration: none;
+      transition: color 0.15s, border-color 0.15s;
+    }
+
+    .error-link:hover {
+      color: var(--text);
+      border-color: var(--text-dim);
     }
 
     /* ========== RESPONSIVE ========== */
@@ -382,9 +512,12 @@
       .card-header { padding: 24px 20px 0; }
       .card-body { padding: 22px 20px 24px; }
       .success-view { padding: 36px 20px; }
-      .header { padding-top: 32px; }
-      .card { margin-top: 32px; }
+      .error-view { padding: 36px 20px; }
+      .header { padding-top: 36px; }
+      .hero { margin-top: 22px; }
+      .card { margin-top: 18px; }
       .card-title { font-size: 20px; }
+      .trust-pill { font-size: 10.5px; padding: 4px 8px; }
     }
   </style>
 </head>
@@ -395,6 +528,10 @@
       <a href="https://automatiks.io" target="_blank" rel="noopener">
         <img src="https://automatiks.io/logo/automatiks-1c-white.svg" alt="automatiks.io" class="logo-img">
       </a>
+      <div class="hero">
+        <span class="hero-eyebrow">Sicherer Zugangslink</span>
+        <p class="hero-sub">Verschlüsselt &amp; nach Abruf automatisch gelöscht</p>
+      </div>
     </header>
 
     <main class="card" id="card">
@@ -416,6 +553,20 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
             Ende-zu-Ende verschlüsselt — Daten werden nach Abruf automatisch gelöscht
           </div>
+          <div class="trust-row" aria-label="Sicherheits-Merkmale">
+            <span class="trust-pill is-eu" title="Hosting in der Europäischen Union">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+              EU-Hosting
+            </span>
+            <span class="trust-pill" title="Self-hosted ohne Cloudflare">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 6v6c0 5 3.5 9.7 8 10 4.5-.3 8-5 8-10V6l-8-4z"/></svg>
+              Self-hosted
+            </span>
+            <span class="trust-pill" title="DSGVO-konforme Datenübertragung">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><path d="M21 12c-1 0-3-1-3-3s2-3 3-3 3 1 3 3-2 3-3 3M3 12c1 0 3-1 3-3S4 6 3 6 0 7 0 9s2 3 3 3"/><circle cx="12" cy="12" r="10"/></svg>
+              DSGVO-konform
+            </span>
+          </div>
         </div>
       </div>
 
@@ -436,18 +587,27 @@
 
       <!-- INVALID LINK VIEW -->
       <div class="error-view" id="invalid-view">
-        <h2 class="error-title" style="color: var(--text-muted);">Ungültiger Link</h2>
-        <p class="error-text">Dieser Link ist ungültig oder abgelaufen.<br>Bitte kontaktieren Sie uns für einen neuen Zugangslink.</p>
+        <div class="error-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </div>
+        <h2 class="error-title">Link nicht mehr gültig</h2>
+        <p class="error-text">Dieser Zugangslink ist ungültig oder bereits abgelaufen.<br>Fragen Sie bitte bei uns nach einem neuen Link.</p>
+        <a class="error-link" href="mailto:info@automatiks.io">info@automatiks.io kontaktieren</a>
       </div>
 
       <!-- SERVICE UNAVAILABLE VIEW -->
       <div class="error-view" id="unavailable-view">
-        <h2 class="error-title" style="color: var(--accent);">Vorübergehend nicht erreichbar</h2>
+        <div class="error-icon" style="background: var(--accent-glow); box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.2);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent);"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <h2 class="error-title">Vorübergehend nicht erreichbar</h2>
         <p class="error-text">Der Service ist momentan nicht verfügbar.<br>Bitte versuchen Sie es in wenigen Minuten erneut.</p>
       </div>
     </main>
 
     <footer class="footer">
+      <div class="footer-divider"></div>
+      <div class="footer-brand">Bereitgestellt von <strong>automatiks.io</strong></div>
       automatiks.io UG (haftungsbeschränkt)<br>
       Droiacker 2, 95505 Immenreuth
       <br>
@@ -674,7 +834,7 @@
         successView.classList.add('active');
       })
       .catch(function(err) {
-        showError('Uebertragung fehlgeschlagen. Bitte kontaktieren Sie uns direkt unter info@automatiks.io.');
+        showError('Übertragung fehlgeschlagen. Bitte kontaktieren Sie uns direkt unter info@automatiks.io.');
       })
       .finally(function() {
         btn.disabled = false;
