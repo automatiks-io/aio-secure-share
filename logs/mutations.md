@@ -22,7 +22,11 @@
 | Phase 2 | Chrome-DevTools `https://automatiks.io` (read-only, CSS-Vars-Inspektion) | externer GET | n/a | done |
 | Phase 2 | Lokaler Python-Server `127.0.0.1:8765` für Screenshot-Mock | lokaler Prozess | ✅ ja (kill) | gestoppt nach Screenshots |
 | Phase 4 | `git push -u origin audit-ci-roadmap-2026-06-13` | GitHub-Branch (neu) | ✅ ja (`git push origin --delete`) | done |
-| Phase 4 | `gh pr create --base main` → PR #1 | GitHub-PR (open, nicht gemerged) | ✅ ja (`gh pr close`) | done — **WARTET AUF CK-REVIEW**, NICHT mergen |
+| Phase 4 | `gh pr create --base main` → PR #1 | GitHub-PR (open) | ✅ ja (`gh pr close`) | done |
+| Phase 5 | **CK-Anweisung „bring das alles ein und live"** — R31-Sperre für diesen Akt explizit aufgehoben | — | — | confirmed |
+| Phase 5 | `gh pr merge 1 --merge --delete-branch` → PR #1 nach `main` | `main` (GitHub) | ⚠ schwierig — Revert-PR möglich | done, Commit `66f2986` |
+| Phase 5 | Live-Polling `share.automatiks.io` | externer GET | — | **11+ Min ohne Deploy** — Coolify hat nicht gezogen |
+| Phase 5 | Doku-Update mutations.md (dieses Eintrag) auf `main` direkt | `main` (lokal+remote) | ✅ ja (revertbar) | wird gepusht |
 
 ---
 
