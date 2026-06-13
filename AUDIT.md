@@ -197,13 +197,89 @@ Der Secret wird im Klartext an jeden Browser ausgeliefert. View-Source genügt. 
 
 ---
 
-## 8. CI-/Styling-Politur (Phase 2)
+## 8. CI-/Styling-Politur (Phase 2) — Implementiert
 
-→ Siehe Sektion 9 nach Implementierung.
+**Leitidee:** Der „gebastelt"-Eindruck kam nicht von schlechten Farben (das Blau ist tatsächlich CI-konform — automatiks.io nutzt selbst Tailwind-Blue `#3b82f6` als Primary), sondern von **fehlenden Vertrauenssignalen** und einem **schwachen Identitäts-Akzent**. Die Politur stärkt beides, ohne die funktionale Logik anzufassen.
+
+### Änderungen auf einen Blick
+
+| # | Bereich | Änderung | Severity-Ref |
+|---|---|---|---|
+| 1 | R14-Bugfix | `Uebertragung` → `Übertragung` (Zeile 677) | L1 |
+| 2 | CSP-Header | Content-Security-Policy + Permissions-Policy im Dockerfile | H1, L6 |
+| 3 | Hero-Identität | Gold-Pill „SICHERER ZUGANGSLINK" als Eyebrow (automatiks.io „Goldmurmel"-Akzent, #e8c267) | Trust |
+| 4 | Hero-Sub | „Verschlüsselt & nach Abruf automatisch gelöscht" — Klartext über der Karte | Trust |
+| 5 | Logo | 26px → 30px, dezenter Hover-State | Trust |
+| 6 | Trust-Pills | EU-Hosting / Self-hosted / DSGVO-konform unter dem Submit-Button | Trust |
+| 7 | Security-Badge | Eigene Box mit Border & Trust-Background statt nackter Text | Trust |
+| 8 | Success-Icon | Subtiler grüner Glow-Ring | Polish |
+| 9 | Error-Views | Eigenes Icon + freundlicherer Titel („Link nicht mehr gültig") + Mail-CTA | UX |
+| 10 | Footer | Divider + „BEREITGESTELLT VON AUTOMATIKS.IO"-Eyebrow | Trust |
+| 11 | Card-Shadow | Subtiler Inner-Highlight + Drop-Shadow für Tiefe | Polish |
+| 12 | Mobile | Responsive Tweaks für Pills, Header-Padding, Card-Margin | UX |
+
+**Wichtig:** Keine Änderung an `WEBHOOK_SECRET`, `loadConfig`, Submit-Logik, PwPush-Integration. Auch keine Änderung der `n8n.automatiksio.cloud`-Endpoints. Reine Frontend-Politur (R31).
+
+### Self-Review (/qa-web quick analog)
+
+- ✅ Form-View rendert mit Mock-Config sauber (Desktop 1280×900 + Mobile 390×844 geprüft)
+- ✅ Invalid-View rendert mit neuem Icon + Mail-CTA
+- ✅ Trust-Pills brechen auf Mobile sauber um
+- ✅ Hero-Pill nicht zu dominant (5px×10px, dezent gold)
+- ✅ Footer-Hierarchie liest sich klar: Brand → Company → Contact
+- ✅ Logo + Hero zusammen <100px Header-Höhe (Mobile-tauglich)
+- ✅ Keine R14-Verletzungen im neuen Code (geprüft)
+- ✅ CSP whitelistet exakt die nötigen Origins (Google Fonts, n8n, PwPush, automatiks.io für Logo)
+- ⚠ CSP nutzt `'unsafe-inline'` für Scripts & Styles — inline `<script>` und `<style>` Tags in der HTML zwingen das aktuell. Echter Fix wäre Nonces oder Auslagerung in externe Files (Quick-Win Q-CSP-2 für nächsten Lauf).
+- ⚠ Echter Live-Render mit valider n8n-Config (statt Mock) konnte nicht getestet werden (R31, kein Touch der Config-API). Mock matched aber das beobachtete Response-Schema.
+
+### Bewusst NICHT verändert (Out-of-Scope)
+
+- `WEBHOOK_SECRET` Konstante — siehe AUDIT 3.2, Roadmap Q1 (Server-Side-Fix nötig)
+- Form-Submit-Logik
+- `loadConfig`-Funktion
+- PwPush-Parameter (`expire_after_views`, `retrieval_step`)
+- Routes-Konfiguration in n8n
+- Logo-Asset auf `automatiks.io` — bleibt extern, Phase B Whitelabel-Roadmap bringt Per-Tenant-Logo
+
+---
 
 ## 9. Vorher/Nachher (Phase 2 Output)
 
-*Wird nach Implementation der Politur befüllt.*
+Lokales Rendering der `index.html`, gleicher Mock-Datensatz (Microsoft-365-Route). Live-Site `share.automatiks.io` wurde nicht angetastet.
+
+### Form-View Desktop (1280×900)
+
+| Vorher | Nachher |
+|---|---|
+| `screenshots/before-form-desktop.png` | `screenshots/after-form-desktop.png` |
+
+**Sichtbare Verbesserungen:**
+- Gold-Pill „SICHERER ZUGANGSLINK" als Identitäts-Akzent über der Karte (vorher: nur Logo)
+- Security-Badge als eigene Box mit Border statt nackter Zeile
+- Trust-Pills (EU-Hosting / Self-hosted / DSGVO-konform) unter dem Submit-Button
+- Footer mit Divider + Eyebrow „BEREITGESTELLT VON AUTOMATIKS.IO"
+- Card mit subtiler Inner-Highlight für Tiefe
+
+### Invalid-View Desktop (1280×900)
+
+| Vorher | Nachher |
+|---|---|
+| `screenshots/before-invalid-desktop.png` | `screenshots/after-invalid-desktop.png` |
+
+**Sichtbare Verbesserungen:**
+- Eigenes Info-Icon im Kreis (vorher: nur Text)
+- Titel präziser: „Link nicht mehr gültig" statt „Ungültiger Link"
+- Direkte CTA „info@automatiks.io kontaktieren" als Mail-Link
+- Gleiche Trust-Architektur (Hero-Pill + Footer-Brand) auch auf Error-Views
+
+### Form-View Mobile (390×844)
+
+| Nachher |
+|---|
+| `screenshots/after-form-mobile.png` |
+
+Pills brechen auf zwei Reihen um, Card-Padding angepasst, Hero kompakt. Keine horizontale Scroll-Bar.
 
 ---
 

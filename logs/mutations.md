@@ -15,4 +15,11 @@
 | Roadmap | `ROADMAP.md` erstellt | Branch-File | ✅ ja | done |
 | Logs | `logs/mutations.md` erstellt | Branch-File | ✅ ja | done |
 
-*Weitere Einträge werden während Phase 2 + Phase 4 angefügt.*
+| Phase 2 | `index.html` Politur (CSS-Tokens, Hero, Trust-Pills, Error-Icon, Footer-Brand, R14-Fix) | Branch-File | ✅ ja | done |
+| Phase 2 | `Dockerfile` CSP + Permissions-Policy ergänzt | Branch-File | ✅ ja | done |
+| Phase 2 | 5 Screenshots in `screenshots/` (before/after, desktop+mobile, form+invalid) | Branch-File | ✅ ja | done |
+| Phase 2 | WebFetch `https://automatiks.io` (read-only, CI-Inspektion) | externer GET | n/a | done |
+| Phase 2 | Chrome-DevTools `https://automatiks.io` (read-only, CSS-Vars-Inspektion) | externer GET | n/a | done |
+| Phase 2 | Lokaler Python-Server `127.0.0.1:8765` für Screenshot-Mock | lokaler Prozess | ✅ ja (kill) | running, wird gestoppt |
+
+*Weitere Einträge werden während Phase 4 angefügt.*
