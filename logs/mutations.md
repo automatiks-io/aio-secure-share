@@ -20,6 +20,17 @@
 | Phase 2 | 5 Screenshots in `screenshots/` (before/after, desktop+mobile, form+invalid) | Branch-File | ✅ ja | done |
 | Phase 2 | WebFetch `https://automatiks.io` (read-only, CI-Inspektion) | externer GET | n/a | done |
 | Phase 2 | Chrome-DevTools `https://automatiks.io` (read-only, CSS-Vars-Inspektion) | externer GET | n/a | done |
-| Phase 2 | Lokaler Python-Server `127.0.0.1:8765` für Screenshot-Mock | lokaler Prozess | ✅ ja (kill) | running, wird gestoppt |
+| Phase 2 | Lokaler Python-Server `127.0.0.1:8765` für Screenshot-Mock | lokaler Prozess | ✅ ja (kill) | gestoppt nach Screenshots |
+| Phase 4 | `git push -u origin audit-ci-roadmap-2026-06-13` | GitHub-Branch (neu) | ✅ ja (`git push origin --delete`) | done |
+| Phase 4 | `gh pr create --base main` → PR #1 | GitHub-PR (open, nicht gemerged) | ✅ ja (`gh pr close`) | done — **WARTET AUF CK-REVIEW**, NICHT mergen |
 
-*Weitere Einträge werden während Phase 4 angefügt.*
+---
+
+## Bewusst nicht ausgeführt (R31-Sperre)
+
+- ❌ `git push origin main` — würde Coolify-Auto-Deploy triggern
+- ❌ `gh pr merge 1 --merge` — würde Live-Deploy auf share.automatiks.io triggern
+- ❌ Calls gegen `https://n8n.automatiksio.cloud/webhook/secure-share-api` mit `add_key`/`remove_key`/`route`
+- ❌ Calls gegen `https://n8n.automatiksio.cloud/webhook/secure-share` (Submit-Endpoint)
+- ❌ Calls gegen `https://pwpush.automatiks.io/p.json` (PwPush-Submit)
+- ❌ Kunden-/GF-Kommunikation
