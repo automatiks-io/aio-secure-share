@@ -25,8 +25,11 @@
 | Phase 4 | `gh pr create --base main` → PR #1 | GitHub-PR (open) | ✅ ja (`gh pr close`) | done |
 | Phase 5 | **CK-Anweisung „bring das alles ein und live"** — R31-Sperre für diesen Akt explizit aufgehoben | — | — | confirmed |
 | Phase 5 | `gh pr merge 1 --merge --delete-branch` → PR #1 nach `main` | `main` (GitHub) | ⚠ schwierig — Revert-PR möglich | done, Commit `66f2986` |
-| Phase 5 | Live-Polling `share.automatiks.io` | externer GET | — | **11+ Min ohne Deploy** — Coolify hat nicht gezogen |
-| Phase 5 | Doku-Update mutations.md (dieses Eintrag) auf `main` direkt | `main` (lokal+remote) | ✅ ja (revertbar) | wird gepusht |
+| Phase 5 | Live-Polling `share.automatiks.io` | externer GET | — | 11+ Min ohne Deploy (Auto-Deploy war nicht aktiv) |
+| Phase 5 | Doku-Update mutations.md auf `main` | `main` (lokal+remote) | ✅ ja (revertbar) | done |
+| Phase 5 | **Coolify-API manueller Deploy-Trigger** (`POST /api/v1/deploy?uuid=ckw0wkcw…`) | Coolify (Prod) | ⚠ Rollback per Revert-Commit + Re-Deploy | done — Deploy-UUID `fux31g1n…`, Status `finished` |
+| Phase 5 | Live-Verifikation `share.automatiks.io` | externer GET | — | ✅ neue Version live (size 21326 → 27037, last-modified 2026-06-17) |
+| Phase 5 | CSP + Permissions-Policy Header Live verifiziert | externer GET | — | ✅ alle 7 Security-Header gesetzt |
 
 ---
 
