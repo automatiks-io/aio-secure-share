@@ -799,9 +799,11 @@
         body: JSON.stringify({
           password: {
             payload: credText,
-            expire_after_days: 2,
+            expire_after_days: 7,
             expire_after_views: 3,
-            retrieval_step: false
+            // Zwischenschritt an: Link-Vorschauen (Slack, Mail-Scanner) bleiben
+            // daran hängen und verbrauchen keinen der drei Abrufe mehr.
+            retrieval_step: true
           }
         })
       })
@@ -810,7 +812,11 @@
         return res.json();
       })
       .then(function(pwData) {
-        var pwpushUrl = 'https://pwpush.automatiks.io/p/' + pwData.url_token;
+        // html_url der API verwenden, nicht selbst zusammenbauen: bei aktivem
+        // Zwischenschritt zeigt sie auf /p/<token>/r (Klick-Seite). Ein selbst
+        // gebauter /p/<token>-Link umgeht den Zwischenschritt, dann verbrennen
+        // Link-Vorschauen von Slack und Mail-Scannern die erlaubten Abrufe.
+        var pwpushUrl = pwData.html_url || ('https://pwpush.automatiks.io/p/' + pwData.url_token + '/r');
 
         return fetch(WEBHOOK_URL, {
           method: 'POST',
